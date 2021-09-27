@@ -1,14 +1,18 @@
 # Copyright (c) 2016 Kaito Udagawa
 # Copyright (c) 2016-2020 3846masa
+# Copyright (c) 2021- ikubaku
 # Released under the MIT license
 # https://opensource.org/licenses/MIT
 
-FROM alpine
+FROM archlinux/archlinux:latest
 
-ENV PATH /usr/local/texlive/2021/bin/x86_64-linuxmusl:$PATH
+ENV PATH /usr/local/texlive/2021/bin/x86_64-linux:$PATH
 
-RUN apk add --no-cache curl perl fontconfig-dev freetype-dev && \
-    apk add --no-cache --virtual .fetch-deps xz tar wget
+RUN pacman -Sy --noconfirm && \
+	pacman -S --noconfirm --needed perl cairo pixman graphite t1lib gd poppler \
+	libsigsegv zziplib libpng libjpeg freetype2 libxcrypt icu harfbuzz harfbuzz-icu \
+	gmp mpfr potrace libpaper libsynctex wget
+
 WORKDIR /tmp/install-tl-unx
 COPY texlive.profile ./
 RUN curl -fsSL ftp://tug.org/historic/systems/texlive/2021/install-tl-unx.tar.gz | \
@@ -18,8 +22,9 @@ RUN curl -fsSL ftp://tug.org/historic/systems/texlive/2021/install-tl-unx.tar.gz
       collection-latexextra \
       collection-fontsrecommended \
       collection-langjapanese \
-      latexmk && \
-    apk del .fetch-deps
+      latexmk
+
+RUN pacman -Rs --noconfirm wget
 
 WORKDIR /workdir
 RUN rm -fr /tmp/install-tl-unx
